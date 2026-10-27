@@ -1,0 +1,186 @@
+local Players = game:GetService("Players")
+local VIM = game:GetService("VirtualInputManager")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Crear GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoToolsGui"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 240, 0, 170)
+frame.Position = UDim2.new(0.5, -120, 0.15, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundTransparency = 1
+title.Text = "Auto Tools"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+-- Botón Auto Farm
+local farmBtn = Instance.new("TextButton")
+farmBtn.Size = UDim2.new(0.85, 0, 0, 40)
+farmBtn.Position = UDim2.new(0.075, 0, 0.28, 0)
+farmBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+farmBtn.Text = "Auto Farm: OFF"
+farmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+farmBtn.TextSize = 16
+farmBtn.Font = Enum.Font.GothamBold
+farmBtn.Parent = frame
+
+local farmCorner = Instance.new("UICorner")
+farmCorner.CornerRadius = UDim.new(0, 8)
+farmCorner.Parent = farmBtn
+
+-- Botón Auto Zenkai
+local zenkaiBtn = Instance.new("TextButton")
+zenkaiBtn.Size = UDim2.new(0.85, 0, 0, 40)
+zenkaiBtn.Position = UDim2.new(0.075, 0, 0.58, 0)
+zenkaiBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+zenkaiBtn.Text = "Auto Zenkai: OFF"
+zenkaiBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+zenkaiBtn.TextSize = 16
+zenkaiBtn.Font = Enum.Font.GothamBold
+zenkaiBtn.Parent = frame
+
+local zenkaiCorner = Instance.new("UICorner")
+zenkaiCorner.CornerRadius = UDim.new(0, 8)
+zenkaiCorner.Parent = zenkaiBtn
+
+-- Variables
+local farmEnabled = false
+local farmRunning = false
+local zenkaiEnabled = false
+local zenkaiRunning = false
+
+-- ========== AUTO FARM ==========
+local function holdKey(key, duration)
+	if not farmEnabled then return end
+	VIM:SendKeyEvent(true, key, false, game)
+	task.wait(duration)
+	VIM:SendKeyEvent(false, key, false, game)
+end
+
+local function autoFarmLoop()
+	while farmEnabled do
+		holdKey(Enum.KeyCode.E, 10)
+		if not farmEnabled then break end
+		task.wait(1)
+
+		holdKey(Enum.KeyCode.R, 10)
+		if not farmEnabled then break end
+		task.wait(1)
+
+		holdKey(Enum.KeyCode.C, 5)
+		if not farmEnabled then break end
+		task.wait(1)
+
+		holdKey(Enum.KeyCode.Q, 10)
+		if not farmEnabled then break end
+		task.wait(1)
+
+		holdKey(Enum.KeyCode.C, 5)
+		if not farmEnabled then break end
+		task.wait(1)
+	end
+	farmRunning = false
+end
+
+-- ========== AUTO ZENKAI ==========
+local function clickAt(x, y)
+	if not zenkaiEnabled then return end
+	VIM:SendMouseButtonEvent(x, y, 0, true, game, 1)
+	task.wait(0.05)
+	VIM:SendMouseButtonEvent(x, y, 0, false, game, 1)
+end
+
+local function autoZenkaiLoop()
+	while zenkaiEnabled do
+		clickAt(971, 888)
+		if not zenkaiEnabled then break end
+		task.wait(1)
+
+		clickAt(685, 748)
+		if not zenkaiEnabled then break end
+		task.wait(1)
+	end
+	zenkaiRunning = false
+end
+
+-- ========== BOTONES ==========
+farmBtn.MouseButton1Click:Connect(function()
+	farmEnabled = not farmEnabled
+
+	if farmEnabled then
+		farmBtn.Text = "Auto Farm: ON"
+		farmBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+		if not farmRunning then
+			farmRunning = true
+			task.spawn(autoFarmLoop)
+		end
+	else
+		farmBtn.Text = "Auto Farm: OFF"
+		farmBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+	end
+end)
+
+zenkaiBtn.MouseButton1Click:Connect(function()
+	zenkaiEnabled = not zenkaiEnabled
+
+	if zenkaiEnabled then
+		zenkaiBtn.Text = "Auto Zenkai: ON"
+		zenkaiBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+		if not zenkaiRunning then
+			zenkaiRunning = true
+			task.spawn(autoZenkaiLoop)
+		end
+	else
+		zenkaiBtn.Text = "Auto Zenkai: OFF"
+		zenkaiBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+	end
+end)
+
+-- Hacer el frame arrastrable
+local dragging = false
+local dragStart, startPos
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+	end
+end)
+
+frame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+print("Auto Tools cargado correctamente")
